@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#ffffff">
+<title>記帳本</title>
+<style>
+:root{
+  /* 黑白灰配色主題 */
+  --bg: #f5f5f7;         /* 背景：極淺灰 */
+  --card: #ffffff;       /* 卡片：純白 */
+  --text: #000000;       /* 主文字：純黑 */
+  --sub: #888888;        /* 次要文字：灰色 */
+  --line: #d1d1d6;       /* 描邊：淺灰 */
+  --line-dark: #a1a1a6;  /* 較深描邊 */
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{
+  background:var(--bg); color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,"PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif;
+  -webkit-font-smoothing:antialiased;
+}
+.app{max-width:520px;margin:0 auto;padding:0 16px 120px}
+
+/* 頂欄 */
+.topbar{
+  position:sticky;top:0;z-index:10;
+  display:flex;align-items:center;justify-content:center;gap:6px;
+  padding:14px 0 10px;background:var(--bg);
+}
+.topbar h1{font-size:16px;font-weight:600;letter-spacing:.5px;min-width:110px;text-align:center}
+.mbtn{
+  border:1px solid var(--line);background:var(--card);width:32px;height:32px;border-radius:8px;
+  font-size:18px;color:var(--text);display:grid;place-items:center;cursor:pointer;
+  transition: background 0.2s;
+}
+.mbtn:active{background:#e5e5ea}
+
+/* 匯總卡片 */
+.summary{
+  background:#111111; /* 卡片底色改為深黑 */
+  border-radius:12px; /* 圓角改小 */
+  padding:22px 22px 18px;color:#ffffff;
+  box-shadow:0 8px 20px -10px rgba(0,0,0,.3);
+  border:1px solid #000;
+}
+.s-balance-label{font-size:13px;color:#a1a1a6;}
+.s-balance{font-size:36px;font-weight:700;letter-spacing:-.5px;margin-top:4px;font-variant-numeric:tabular-nums}
+.s-split{display:flex;align-items:center;margin-top:18px;gap:14px}
+.s-item{display:flex;flex-direction:column;gap:3px;flex:1}
+.s-item span{font-size:12px;color:#a1a1a6;}
+.s-item strong{font-size:16px;font-weight:600;font-variant-numeric:tabular-nums}
+.s-divider{width:1px;height:26px;background:#333333;}
+
+/* 明細 */
+.day{margin-top:20px}
+.day-head{display:flex;justify-content:space-between;font-size:12px;color:var(--sub);padding:0 4px 8px;font-weight:500}
+.item{
+  display:flex;align-items:center;gap:12px;background:var(--card);
+  padding:12px 14px;border-radius:8px;margin-bottom:8px; /* 圓角改小 */
+  border:1px solid var(--line); /* 白色描邊/淺灰線 */
+  cursor:pointer;transition:transform .1s,background .1s;
+}
+.item:active{transform:scale(.98);background:#fafafa}
+.ico{width:38px;height:38px;border-radius:8px;display:grid;place-items:center;font-size:19px;background:#f5f5f7;flex-shrink:0;border:1px solid var(--line)}
+.ico.income{background:#e5e5ea;} /* 收入圖標改為深灰 */
+.info{flex:1;min-width:0}
+.name{font-size:15px;font-weight:600;display:flex;align-items:center;gap:6px}
+.note{font-size:12px;color:var(--sub);font-weight:400;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.amt{font-size:16px;font-weight:700;font-variant-numeric:tabular-nums;flex-shrink:0;color:var(--text)}
+.amt.income{color:var(--sub)} /* 收入用灰色區分 */
+.empty{text-align:center;padding:70px 0;color:var(--sub);font-size:14px;line-height:2}
+.empty span{font-size:12px;opacity:.7}
+
+/* 統計 */
+.stat-block{background:var(--card);border-radius:12px;padding:16px;margin-top:16px;border:1px solid var(--line)}
+.stat-title{font-size:13px;color:var(--text);font-weight:600;margin-bottom:14px}
+.stat-row{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.stat-row:last-child{margin-bottom:0}
+.stat-row .n{width:72px;font-size:13px;display:flex;align-items:center;gap:5px;flex-shrink:0}
+.stat-row .bar{flex:1;height:6px;background:#f5f5f7;border-radius:4px;overflow:hidden}
+.stat-row .bar i{display:block;height:100%;border-radius:4px;background:#111111;transition:width .4s}
+.stat-row .bar.in i{background:#888888;}
+.stat-row .v{width:76px;text-align:right;font-size:13px;font-weight:600;font-variant-numeric:tabular-nums;flex-shrink:0}
+.data-actions{display:flex;gap:10px;margin-top:24px}
+.data-actions button{
+  flex:1;border:1px solid var(--line);background:var(--card);padding:14px;border-radius:8px;
+  font-size:14px;font-weight:600;color:var(--text);font-family:inherit;cursor:pointer;
+}
+.data-actions button:active{background:#f5f5f7}
+
+/* 底部導航 */
+.tabbar{
+  position:fixed;left:0;right:0;bottom:0;z-index:20;display:flex;align-items:center;
+  max-width:520px;margin:0 auto;
+  background:rgba(255,255,255,.95);
+  -webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);
+  border-top:1px solid var(--line);
+  padding:8px 0 calc(8px + env(safe-area-inset-bottom));
+}
+.tab{flex:1;border:0;background:none;font-size:13px;color:var(--sub);font-weight:600;padding:8px;font-family:inherit;cursor:pointer}
+.tab.on{color:var(--text)}
+.fab{
+  flex:0 0 auto;width:54px;height:54px;border-radius:50%;border:1px solid #333;margin-top:-24px;
+  background:#111111;color:#ffffff;font-size:30px;line-height:1;
+  display:grid;place-items:center;cursor:pointer;
+  box-shadow:0 8px 16px -6px rgba(0,0,0,.4);
+  transition:transform .15s;
+}
+.fab:active{transform:scale(.9)}
+
+/* 抽屜 / 輸入面板 */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);opacity:0;pointer-events:none;transition:opacity .25s;z-index:30}
+.overlay.on{opacity:1;pointer-events:auto}
+.sheet{
+  position:fixed;left:0;right:0;bottom:0;z-index:40;background:var(--card);
+  border-radius:12px 12px 0 0; /* 圓角改小 */
+  padding:10px 18px calc(18px + env(safe-area-inset-bottom));
+  transform:translateY(105%);transition:transform .32s cubic-bezier(.32,.72,0,1);
+  max-width:520px;margin:0 auto;max-height:92vh;overflow-y:auto;
+  border-top:1px solid var(--line);
+}
+.sheet.on{transform:translateY(0)}
+.sheet-grip{width:38px;height:4px;border-radius:2px;background:#e5e5ea;margin:0 auto 12px}
+.seg{display:flex;background:var(--bg);border-radius:8px;padding:3px;margin-bottom:16px;border:1px solid var(--line)}
+.seg button{
+  flex:1;border:0;background:none;padding:9px;border-radius:6px;font-size:14px;font-weight:600;
+  color:var(--sub);font-family:inherit;cursor:pointer;transition:.2s;
+}
+.seg button.on{background:#ffffff;color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.1);border:1px solid var(--line)}
+
+/* 輸入框（Note）優化 */
+.amount-row{display:flex;align-items:baseline;gap:6px;padding:8px 12px;margin-bottom:12px; border:1px solid var(--line); border-radius:8px; background:var(--card);}
+.amount-row .cur{font-size:22px;color:var(--sub);font-weight:600}
+.amount-row input{
+  flex:1;border:0;outline:0;font-size:36px;font-weight:700;letter-spacing:-1px;
+  background:none;font-variant-numeric:tabular-nums;min-width:0;font-family:inherit;color:var(--text);
+}
+.amount-row input::placeholder{color:#d1d1d6}
+
+.cat-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin:16px 0}
+.cat{
+  border:1px solid var(--line);background:var(--card);border-radius:8px;padding:9px 2px;
+  display:flex;flex-direction:column;align-items:center;gap:4px;
+  font-size:11px;color:var(--sub);font-family:inherit;cursor:pointer;transition:.15s;
+}
+.cat span{font-size:20px;line-height:1}
+.cat.on{background:#111111;color:#ffffff;border-color:#111111;}
+
+.meta{display:flex;gap:10px;margin-bottom:16px}
+.meta input{
+  flex:1;border:1px solid var(--line);background:var(--card);border-radius:8px;padding:13px 14px;
+  font-size:14px;font-family:inherit;outline:0;color:var(--text);min-width:0;
+}
+.meta input:focus{border-color:var(--text)}
+.meta #dateInput{flex:0 0 132px;color:var(--text)}
+
+.sheet-actions{display:flex;gap:10px}
+.btn-save{
+  flex:1;border:0;padding:15px;border-radius:8px;
+  background:#111111;color:#ffffff;
+  font-size:16px;font-weight:600;font-family:inherit;cursor:pointer;
+}
+.btn-save:active{opacity:.8}
+.btn-del{
+  border:1px solid var(--line);padding:15px 20px;border-radius:8px;background:var(--card);color:var(--text);
+  font-size:15px;font-weight:600;font-family:inherit;cursor:pointer;
+}
+
+/* Toast 提示 */
+.toast{
+  position:fixed;left:50%;top:50%;transform:translate(-50%,-50%) scale(.9);
+  background:rgba(0,0,0,.9);color:#fff;padding:12px 22px;border-radius:8px;
+  font-size:14px;z-index:100;opacity:0;pointer-events:none;transition:.2s;white-space:nowrap;
+}
+.toast.on{opacity:1;transform:translate(-50%,-50%) scale(1)}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <header class="topbar">
+    <button class="mbtn" id="prevM">‹</button>
+    <h1 id="monthLabel">—</h1>
+    <button class="mbtn" id="nextM">›</button>
+  </header>
+
+  <section class="summary">
+    <div class="s-balance-label">本月結餘</div>
+    <div class="s-balance" id="sBalance">$0</div>
+    <div class="s-split">
+      <div class="s-item"><span>收入</span><strong id="sIncome">$0</strong></div>
+      <div class="s-divider"></div>
+      <div class="s-item"><span>支出</span><strong id="sExpense">$0</strong></div>
+    </div>
+  </section>
+
+  <main>
+    <div id="viewList">
+      <div id="list"></div>
+    </div>
+    <div id="viewStats" hidden>
+      <div id="stats"></div>
+      <div class="data-actions">
+        <button id="exportBtn">匯出備份</button>
+        <button id="importBtn">匯入備份</button>
+        <input type="file" id="importFile" accept="application/json" hidden>
+      </div>
+    </div>
+  </main>
+</div>
+
+<nav class="tabbar">
+  <button class="tab on" data-view="list">明細</button>
+  <button class="fab" id="fabAdd">+</button>
+  <button class="tab" data-view="stats">統計</button>
+</nav>
+
+<div class="overlay" id="overlay"></div>
+
+<div class="sheet" id="sheet">
+  <div class="sheet-grip"></div>
+  <div class="seg" id="seg">
+    <button class="on" data-type="expense">支出</button>
+    <button data-type="income">收入</button>
+  </div>
+  <div class="amount-row">
+    <span class="cur">$</span>
+    <input id="amtInput" type="text" inputmode="decimal" placeholder="0" autocomplete="off">
+  </div>
+  <div class="cat-grid" id="catGrid"></div>
+  <div class="meta">
+    <input type="date" id="dateInput">
+    <input type="text" id="noteInput" placeholder="備註（選填）" maxlength="40">
+  </div>
+  <div class="sheet-actions">
+    <button class="btn-del" id="btnDel" hidden>刪除</button>
+    <button class="btn-save" id="btnSave">儲存</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const $ = id => document.getElementById(id);
+
+const CATS = {
+  expense: [
+    {id:'food',      name:'餐飲', emoji:'🍜'},
+    {id:'transport', name:'交通', emoji:'🚌'},
+    {id:'shopping',  name:'購物', emoji:'🛍️'},
+    {id:'home',      name:'居家', emoji:'🏠'},
+    {id:'fun',       name:'娛樂', emoji:'🎮'},
+    {id:'health',    name:'醫療', emoji:'💊'},
+    {id:'study',     name:'學習', emoji:'📚'},
+    {id:'social',    name:'人情', emoji:'🎁'},
+    {id:'bill',      name:'帳單', emoji:'📄'},
+    {id:'other',     name:'其他', emoji:'📦'}
+  ],
+  income: [
+    {id:'salary',   name:'薪水', emoji:'💰'},
+    {id:'bonus',    name:'獎金', emoji:'🎉'},
+    {id:'invest',   name:'投資', emoji:'📈'},
+    {id:'parttime', name:'兼職', emoji:'💼'},
+    {id:'gift',     name:'紅包', emoji:'🧧'},
+    {id:'other',    name:'其他', emoji:'📦'}
+  ]
+};
+
+const STORE_KEY = 'ledger.v1';
+let records  = loadData();
+let curMonth = todayStr().slice(0,7);
+let curView  = 'list';
+let editId   = null;
+let curType  = 'expense';
+let curCat   = 'food';
+
+/* ---------- 工具 ---------- */
+function loadData(){
+  try{ const d = JSON.parse(localStorage.getItem(STORE_KEY)); return Array.isArray(d)?d:[]; }
+  catch(e){ return []; }
+}
+function saveData(){
+  try{ localStorage.setItem(STORE_KEY, JSON.stringify(records)); }
+  catch(e){ toast('儲存失敗，空間可能已滿'); }
+}
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,7);
+function ymd(d){
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+function todayStr(){ return ymd(new Date()); }
+function money(n){
+  const v = Math.round(n*100)/100;
+  return v.toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:2});
+}
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function catOf(type,id){
+  return (CATS[type]||[]).find(c=>c.id===id) || {emoji:'❓',name:'其他'};
+}
+let toastTimer;
+function toast(msg){
+  const t = $('toast');
+  t.textContent = msg;
+  t.classList.add('on');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>t.classList.remove('on'), 1600);
+}
+
+/* ---------- 渲染 ---------- */
+function render(){
+  const y = curMonth.slice(0,4), m = Number(curMonth.slice(5,7));
+  $('monthLabel').textContent = `${y}年${m}月`;
+
+  const rs = records.filter(r => r.date.startsWith(curMonth));
+  const income  = rs.filter(r=>r.type==='income').reduce((s,r)=>s+r.amount,0);
+  const expense = rs.filter(r=>r.type==='expense').reduce((s,r)=>s+r.amount,0);
+
+  $('sIncome').textContent  = '$' + money(income);
+  $('sExpense').textContent = '$' + money(expense);
+  $('sBalance').textContent = '$' + money(income - expense);
+
+  renderList(rs);
+  renderStats(rs);
+}
+
+function renderList(rs){
+  const box = $('list');
+  if(!rs.length){
+    box.innerHTML = '<div class="empty">這個月還沒有紀錄<br><span>點下方 + 開始記帳</span></div>';
+    return;
+  }
+  const groups = {};
+  rs.forEach(r => (groups[r.date] = groups[r.date] || []).push(r));
+
+  let html = '';
+  Object.keys(groups).sort().reverse().forEach(d => {
+    const items = groups[d].sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
+    const out = items.filter(i=>i.type==='expense').reduce((s,i)=>s+i.amount,0);
+    const inc = items.filter(i=>i.type==='income').reduce((s,i)=>s+i.amount,0);
+    const parts = [];
+    if(out) parts.push('支出 ' + money(out));
+    if(inc) parts.push('收入 ' + money(inc));
+
+    html += `<div class="day">
+      <div class="day-head"><span>${dayLabel(d)}</span><span>${parts.join(' · ')}</span></div>`;
+    items.forEach(it => {
+      const c = catOf(it.type, it.cat);
+      html += `<div class="item" data-id="${it.id}">
+        <div class="ico ${it.type}">${c.emoji}</div>
+        <div class="info"><div class="name">${esc(c.name)}${
+          it.note ? `<span class="note">${esc(it.note)}</span>` : ''
+        }</div></div>
+        <div class="amt ${it.type}">${it.type==='expense'?'−':'+'}${money(it.amount)}</div>
+      </div>`;
+    });
+    html += '</div>';
+  });
+  box.innerHTML = html;
+}
+
+function dayLabel(d){
+  const t = todayStr();
+  if(d === t) return '今天';
+  const y = new Date(); y.setDate(y.getDate()-1);
+  if(d === ymd(y)) return '昨天';
+  const dt = new Date(d + 'T00:00:00');
+  return `${dt.getMonth()+1}月${dt.getDate()}日 週${'日一二三四五六'[dt.getDay()]}`;
+}
+
+function renderStats(rs){
+  $('stats').innerHTML = statBlock(rs,'expense','支出') + statBlock(rs,'income','收入');
+}
+
+function statBlock(rs, type, title){
+  const items = rs.filter(r => r.type === type);
+  if(!items.length) return '';
+  const map = new Map();
+  items.forEach(r => map.set(r.cat, (map.get(r.cat)||0) + r.amount));
+  const arr = [...map].map(([id, amt]) => {
+    const c = catOf(type, id);
+    return {emoji:c.emoji, name:c.name, amt};
+  }).sort((a,b)=>b.amt-a.amt);
+
+  const max = arr[0].amt;
+  const total = arr.reduce((s,x)=>s+x.amt,0);
+
+  return `<div class="stat-block">
+    <div class="stat-title">${title} · 共 ${money(total)}</div>
+    ${arr.map(x => `<div class="stat-row">
+      <div class="n">${x.emoji} ${esc(x.name)}</div>
+      <div class="bar ${type==='income'?'in':''}"><i style="width:${Math.max(4, x.amt/max*100)}%"></i></div>
+      <div class="v">${money(x.amt)}</div>
+    </div>`).join('')}
+  </div>`;
+}
+
+/* ---------- 月份切換 / 視圖 ---------- */
+function shiftMonth(n){
+  const [y,m] = curMonth.split('-').map(Number);
+  const d = new Date(y, m-1+n, 1);
+  curMonth = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+  render();
+}
+function switchView(v){
+  curView = v;
+  $('viewList').hidden  = v !== 'list';
+  $('viewStats').hidden = v !== 'stats';
+  document.querySelectorAll('.tab').forEach(b => b.classList.toggle('on', b.dataset.view === v));
+}
+
+/* ---------- 抽屜 ---------- */
+function defaultDate(){
+  const t = todayStr();
+  return t.startsWith(curMonth) ? t : curMonth + '-01';
+}
+function renderCats(){
+  $('catGrid').innerHTML = CATS[curType].map(c =>
+    `<button class="cat ${c.id===curCat?'on':''}" data-cat="${c.id}">
+       <span>${c.emoji}</span>${c.name}
+     </button>`
+  ).join('');
+}
+function openSheet(rec){
+  editId  = rec ? rec.id : null;
+  curType = rec ? rec.type : 'expense';
+  curCat  = rec ? rec.cat : CATS.expense[0].id;
+  if(!CATS[curType].some(c=>c.id===curCat)) curCat = CATS[curType][0].id;
+
+  $('amtInput').value  = rec ? String(rec.amount) : '';
+  $('noteInput').value = rec ? (rec.note||'') : '';
+  $('dateInput').value = rec ? rec.date : defaultDate();
+  $('btnDel').hidden   = !rec;
+
+  document.querySelectorAll('#seg button').forEach(b =>
+    b.classList.toggle('on', b.dataset.type === curType));
+  renderCats();
+
+  $('overlay').classList.add('on');
+  $('sheet').classList.add('on');
+  if(!rec) setTimeout(()=>$('amtInput').focus(), 340);
+}
+function closeSheet(){
+  $('overlay').classList.remove('on');
+  $('sheet').classList.remove('on');
+  $('amtInput').blur();
+  $('noteInput').blur();
+}
+function saveRecord(){
+  const amt = parseFloat($('amtInput').value);
+  if(!amt || amt <= 0){ toast('請輸入金額'); return; }
+  if(!curCat){ toast('請選分類'); return; }
+
+  const date = $('dateInput').value || defaultDate();
+  const note = $('noteInput').value.trim();
+
+  if(editId){
+    const r = records.find(x=>x.id===editId);
+    if(r) Object.assign(r, {type:curType, amount:amt, cat:curCat, date, note});
+  }else{
+    records.push({
+      id: uid(), type: curType, amount: amt, cat: curCat,
+      date, note, createdAt: Date.now()
+    });
+  }
+  saveData();
+  closeSheet();
+  curMonth = date.slice(0,7);
+  render();
+  toast(editId ? '已更新' : '已記下');
+  editId = null;
+}
+function deleteRecord(){
+  if(!editId) return;
+  if(!confirm('確定要刪除這筆紀錄嗎？')) return;
+  records = records.filter(r => r.id !== editId);
+  saveData(); closeSheet(); render(); toast('已刪除');
+  editId = null;
+}
+
+/* ---------- 匯出 / 匯入 ---------- */
+function exportData(){
+  const blob = new Blob([JSON.stringify(records, null, 2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `ledger-${todayStr()}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(a.href), 1000);
+  toast('已匯出');
+}
+function importData(file){
+  const reader = new FileReader();
+  reader.onload = e => {
+    try{
+      const arr = JSON.parse(e.target.result);
+      if(!Array.isArray(arr)) throw new Error('bad');
+      const ids = new Set(records.map(r=>r.id));
+      let added = 0;
+      arr.forEach(r => {
+        if(r && r.id && r.date && typeof r.amount === 'number' && !ids.has(r.id)){
+          records.push(r); ids.add(r.id); added++;
+        }
+      });
+      saveData(); render();
+      toast(`已匯入 ${added} 筆`);
+    }catch(err){ toast('檔案格式錯誤'); }
+  };
+  reader.readAsText(file);
+}
+
+/* ---------- 事件 ---------- */
+$('prevM').onclick = () => shiftMonth(-1);
+$('nextM').onclick = () => shiftMonth(1);
+$('fabAdd').onclick = () => openSheet(null);
+$('overlay').onclick = closeSheet;
+$('btnSave').onclick = saveRecord;
+$('btnDel').onclick = deleteRecord;
+$('exportBtn').onclick = exportData;
+$('importBtn').onclick = () => $('importFile').click();
+$('importFile').onchange = e => {
+  if(e.target.files[0]) importData(e.target.files[0]);
+  e.target.value = '';
+};
+
+document.querySelectorAll('.tab').forEach(b => {
+  b.onclick = () => switchView(b.dataset.view);
+});
+
+document.querySelectorAll('#seg button').forEach(b => {
+  b.onclick = () => {
+    curType = b.dataset.type;
+    curCat = CATS[curType][0].id;
+    document.querySelectorAll('#seg button').forEach(x =>
+      x.classList.toggle('on', x.dataset.type === curType));
+    renderCats();
+  };
+});
+
+$('catGrid').addEventListener('click', e => {
+  const btn = e.target.closest('.cat');
+  if(!btn) return;
+  curCat = btn.dataset.cat;
+  document.querySelectorAll('.cat').forEach(x =>
+    x.classList.toggle('on', x.dataset.cat === curCat));
+});
+
+$('list').addEventListener('click', e => {
+  const el = e.target.closest('.item');
+  if(!el) return;
+  const rec = records.find(r => r.id === el.dataset.id);
+  if(rec) openSheet(rec);
+});
+
+$('amtInput').addEventListener('input', e => {
+  let v = e.target.value.replace(/[^\d.]/g, '');
+  const p = v.split('.');
+  if(p.length > 2) v = p[0] + '.' + p.slice(1).join('');
+  const q = v.split('.');
+  if(q[1] && q[1].length > 2) v = q[0] + '.' + q[1].slice(0,2);
+  if(v.startsWith('.')) v = '0' + v;
+  e.target.value = v;
+});
+
+$('amtInput').addEventListener('keydown', e => {
+  if(e.key === 'Enter'){ e.preventDefault(); $('noteInput').focus(); }
+});
+$('noteInput').addEventListener('keydown', e => {
+  if(e.key === 'Enter'){ e.preventDefault(); saveRecord(); }
+});
+
+/* ---------- 啟動 ---------- */
+render();
+switchView('list');
+</script>
+</body>
+</html>
