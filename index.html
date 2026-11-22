@@ -83,6 +83,7 @@ body{
 .topbar{
   display:flex;align-items:center;justify-content:center;gap:6px;
   padding:14px 0 10px;
+  position: relative;
 }
 .month-picker-wrap {
   position: relative;
@@ -118,6 +119,26 @@ body{
   cursor: pointer;
   -webkit-appearance: none;
 }
+/* 月/年切換 */
+.view-toggle {
+  position: absolute;
+  right: 0;
+  display: flex;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  overflow: hidden;
+}
+.view-toggle button {
+  border: 0; background: none; padding: 4px 8px;
+  font-size: 12px; font-family: inherit; color: var(--sub);
+  cursor: pointer; transition: all 0.2s;
+}
+.view-toggle button.on {
+  background: #fff; color: var(--text); font-weight: 600;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+}
+
 .mbtn{
   border:1px solid var(--line);background:var(--card);width:32px;height:32px;border-radius:8px;
   font-size:18px;color:var(--text);display:grid;place-items:center;cursor:pointer;
@@ -283,13 +304,61 @@ body{
   font-size:15px;font-weight:600;font-family:inherit;cursor:pointer;touch-action:manipulation;
 }
 
-/* 管理分類 */
+/* 管理分類 (動態多列拖拽版) */
 .manage-box{background:#f9f9fb;border:1px solid var(--line);border-radius:8px;padding:16px;margin-bottom:16px;}
-.m-list{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
-.m-item{display:flex;align-items:center;gap:6px;background:#fff;border:1px solid var(--line);padding:4px 8px;border-radius:6px;font-size:13px;}
-.m-del{border:0;background:none;color:var(--danger);font-size:16px;cursor:pointer;padding:0 4px;line-height:1;touch-action:manipulation;}
+
+.col-toggle {
+  display: flex; background: var(--bg); border: 1px solid var(--line); border-radius: 4px; overflow: hidden;
+}
+.col-toggle button {
+  border: 0; background: none; padding: 2px 8px; font-size: 12px; color: var(--sub);
+  cursor: pointer; transition: all 0.2s; font-family: inherit;
+}
+.col-toggle button.on { background: #fff; color: var(--text); font-weight: 600; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+
+.m-list-vertical { 
+  display: grid; gap: 8px; margin-bottom: 12px; 
+  grid-template-columns: repeat(var(--cols, 1), 1fr); /* 由 JS 動態注入變數 */
+}
+.m-item-v {
+  display: flex; align-items: center; justify-content: space-between;
+  background: #fff; border: 1px solid var(--line); padding: 10px 12px;
+  border-radius: 6px; font-size: 14px; transition: box-shadow 0.2s, opacity 0.2s;
+  position: relative; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none;
+}
+.m-item-v.dragging {
+  box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+  opacity: 0.9;
+  z-index: 10;
+  border-color: var(--sub);
+}
+
+/* 單列模式 */
+.m-item-v.list-mode { flex-direction: row; }
+.m-item-v.list-mode .m-name { display: flex; align-items: center; gap: 8px; flex: 1; overflow: hidden; }
+.m-item-v.list-mode .m-emoji { font-size: 18px; }
+.m-item-v.list-mode .m-text { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 500; }
+.m-item-v.list-mode .m-del { border:0;background:none;color:var(--danger);font-size:18px;cursor:pointer;padding:0 4px;line-height:1;touch-action:manipulation; }
+
+/* 多列模式 (2, 3, 4列) */
+.m-item-v.grid-mode { flex-direction: column; justify-content: center; text-align: center; padding: 10px 4px; gap: 4px; }
+.m-item-v.grid-mode .m-name { flex-direction: column; gap: 4px; width: 100%; display: flex; align-items: center; }
+.m-item-v.grid-mode .m-emoji { font-size: 20px; line-height: 1; }
+.m-item-v.grid-mode .m-text { font-size: 12px; width: 100%; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.2; }
+.m-item-v.grid-mode .m-del { position: absolute; top: 2px; right: 2px; border:0;background:none;color:var(--danger);font-size:14px;cursor:pointer;width:20px;height:20px;line-height:1;touch-action:manipulation; display: grid; place-items: center; }
+
+/* 列數越多，卡片越緊湊 */
+.m-list-vertical[style*="--cols: 3"] .m-item-v.grid-mode { padding: 8px 2px; }
+.m-list-vertical[style*="--cols: 3"] .m-item-v.grid-mode .m-emoji { font-size: 18px; }
+.m-list-vertical[style*="--cols: 3"] .m-item-v.grid-mode .m-text { font-size: 11px; }
+
+.m-list-vertical[style*="--cols: 4"] .m-item-v.grid-mode { padding: 6px 2px; }
+.m-list-vertical[style*="--cols: 4"] .m-item-v.grid-mode .m-emoji { font-size: 16px; }
+.m-list-vertical[style*="--cols: 4"] .m-item-v.grid-mode .m-text { font-size: 10px; }
+
 .m-add{display:flex;gap:8px}
 .m-add input{flex:1;border:1px solid var(--line);padding:8px;border-radius:6px;font-size:13px;outline:none;min-width:0;}
+.m-add input[name="emoji"]{flex:0 0 50px;text-align:center;}
 .m-add button{border:0;background:#111;color:#fff;padding:0 12px;border-radius:6px;font-weight:600;cursor:pointer;touch-action:manipulation;}
 
 /* 餘額管理面板 */
@@ -319,20 +388,16 @@ body{
 }
 .bal-actions button.del-btn { color: var(--danger); border-color: #ffd1d1; background: #fff0f0; }
 
-/* 拖拽把手 */
 .drag-handle {
   font-size: 20px; color: var(--line);
   padding: 8px 12px 8px 4px;
   cursor: grab;
   display: flex; align-items: center; justify-content: center;
-  touch-action: none; /* 阻止瀏覽器干預 */
+  touch-action: none;
   user-select: none;
   -webkit-user-select: none;
 }
-.drag-handle:active {
-  cursor: grabbing;
-  color: var(--sub);
-}
+.drag-handle:active { cursor: grabbing; color: var(--sub); }
 
 .toast{
   position:fixed;left:50%;top:50%;transform:translate(-50%,-50%) scale(.9);
@@ -341,7 +406,7 @@ body{
 }
 .toast.on{opacity:1;transform:translate(-50%,-50%) scale(1)}
 
-/* 通用彈窗樣式 (取代原生 Alert/Confirm/Prompt) */
+/* 通用彈窗樣式 */
 .modal-overlay {
   position: fixed; inset: 0; z-index: 999; background: rgba(0,0,0,0.6);
   display: none; align-items: center; justify-content: center; padding: 20px;
@@ -393,6 +458,10 @@ body{
       <input type="date" id="monthPickerInput" class="month-picker-input">
     </div>
     <button class="mbtn" id="nextM">›</button>
+    <div class="view-toggle" id="viewToggle">
+      <button type="button" data-mode="month" class="on">月</button>
+      <button type="button" data-mode="year">年</button>
+    </div>
   </header>
 
   <section class="summary">
@@ -418,15 +487,39 @@ body{
       <div class="settings-header">設定與備份</div>
       <div id="stats"></div>
       
+      <!-- 偏好設定 -->
       <div class="manage-box" style="margin-top:24px;">
-        <div class="stat-title" style="margin-bottom:8px;">⚙️ 管理分類</div>
+        <div class="stat-title" style="margin-bottom:8px;">⚙️ 記帳偏好</div>
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <span style="font-size:14px; font-weight:500;">預設記帳類型</span>
+          <div class="seg" id="defaultTypeSeg" style="margin-bottom:0; width:120px;">
+            <button type="button" data-type="expense">支出</button>
+            <button type="button" data-type="income">收入</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 管理分類 -->
+      <div class="manage-box" style="margin-top:16px;">
+        <div class="stat-title" style="margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;">
+          <span>📑 管理分類 <span style="font-size:10px;font-weight:400;color:#888;">（長按卡片可拖動排序）</span></span>
+          <div class="col-toggle" id="colToggle">
+            <button type="button" data-col="1">1</button>
+            <button type="button" data-col="2">2</button>
+            <button type="button" data-col="3">3</button>
+            <button type="button" data-col="4">4</button>
+          </div>
+        </div>
+        
         <div class="seg" id="manageSeg" style="margin-bottom:12px;">
           <button type="button" class="on" data-mtype="expense">支出分類</button>
           <button type="button" data-mtype="income">收入分類</button>
         </div>
-        <div class="m-list" id="manageList"></div>
+        
+        <div class="m-list-vertical" id="manageList"></div>
+        
         <div class="m-add">
-          <input type="text" id="newCatEmoji" placeholder="新圖示 如🍔" maxlength="2">
+          <input type="text" id="newCatEmoji" placeholder="🍔" maxlength="2" style="flex:0 0 50px; text-align:center;">
           <input type="text" id="newCatName" placeholder="新分類名稱" maxlength="6">
           <button type="button" id="btnAddCat">新增</button>
         </div>
@@ -464,7 +557,7 @@ body{
   <div class="sec-title">選擇分類</div>
   <div class="cat-grid" id="catGrid"></div>
   
-  <div class="sec-title">記帳帳戶 <span style="font-size:10px;font-weight:400;color:#888;">（長按左側把手可拖動排序）</span></div>
+  <div class="sec-title">記帳帳戶</div>
   <div class="acc-grid" id="accGrid"></div>
 
   <div class="meta">
@@ -491,17 +584,15 @@ body{
   <button type="button" class="btn-save" style="margin-top:20px;" id="btnCloseBalance">完成</button>
 </div>
 
-<!-- 通用彈窗 (取代 alert/confirm/prompt) -->
+<!-- 通用彈窗 -->
 <div class="modal-overlay" id="universalModal">
   <div class="modal-box">
     <h2 id="umTitle">提示</h2>
     <p id="umMessage" style="display:none;"></p>
-    
     <div id="umInputContainer" class="modal-inputs" style="display:none;">
       <label id="umInputLabel">輸入內容</label>
       <input type="text" id="umInput" class="edit-input" autocomplete="off">
     </div>
-    
     <div class="modal-actions">
       <button type="button" class="btn-cancel" id="umBtnCancel">取消</button>
       <button type="button" class="btn-confirm" id="umBtnConfirm">確認</button>
@@ -513,17 +604,14 @@ body{
 <div class="modal-overlay" id="editAccOverlay">
   <div class="modal-box">
     <h2>修改帳戶資訊</h2>
-    
     <div class="modal-inputs">
       <label>帳戶名稱</label>
       <input type="text" id="editAccName" class="edit-input" maxlength="10">
     </div>
-    
     <div class="modal-inputs">
       <label>備註（選填）</label>
       <input type="text" id="editAccNote" class="edit-input" maxlength="10" placeholder="如：錢包、抽屜">
     </div>
-    
     <div class="modal-actions">
       <button type="button" class="btn-cancel" id="btnCancelEditAcc">取消</button>
       <button type="button" class="btn-confirm" id="btnSaveEditAcc">儲存</button>
@@ -536,9 +624,7 @@ body{
   <div class="modal-box" style="max-width:400px;">
     <h2>數據升級：帳戶綁定</h2>
     <p>系統檢測到舊版本記帳紀錄。為了防止混淆，請為舊帳戶指定對應的「新帳戶」。</p>
-    <div class="migration-list" id="migrationList" style="max-height:40vh; overflow-y:auto; margin-bottom:16px; text-align:left;">
-      <!-- 動態生成 -->
-    </div>
+    <div class="migration-list" id="migrationList" style="max-height:40vh; overflow-y:auto; margin-bottom:16px; text-align:left;"></div>
     <div class="modal-actions">
       <button type="button" class="btn-confirm" id="btnConfirmMigration" style="width:100%;">確認綁定並進入</button>
     </div>
@@ -583,10 +669,12 @@ const DEFAULT_ACCS = [
 const KEY_REC = 'ledger.v4.records';
 const KEY_CAT = 'ledger.v4.cats';
 const KEY_ACC = 'ledger.v4.accs';
+const KEY_PREF = 'ledger.v4.prefs';
 
 let records = loadData(KEY_REC, []);
 let myCats  = loadData(KEY_CAT, DEFAULT_CATS);
 let myAccs  = loadData(KEY_ACC, DEFAULT_ACCS);
+let prefs   = loadData(KEY_PREF, { viewMode: 'month', defaultRecordType: 'expense', colView: 1 });
 
 if (!myCats.expense) myCats.expense = DEFAULT_CATS.expense;
 if (!myCats.income) myCats.income = DEFAULT_CATS.income;
@@ -596,11 +684,15 @@ myAccs.forEach(acc => {
   if (acc.note === undefined) acc.note = '';
 });
 
+let viewMode = prefs.viewMode || 'month';
+let defaultRecordType = prefs.defaultRecordType || 'expense';
+let colView = prefs.colView || 1;
+
 let curMonth = todayStr().slice(0,7);
 let curView  = 'list';
 let editId   = null;
-let curType  = 'expense';
-let curCatId = myCats.expense[0].id;
+let curType  = defaultRecordType;
+let curCatId = myCats[curType][0].id;
 let curAccId = myAccs[0].id; 
 let editingAccId = null; 
 
@@ -633,9 +725,7 @@ function showModal(title, message, options = {}) {
   umOnConfirm = options.onConfirm;
   $('universalModal').classList.add('on');
   
-  if (options.isPrompt) {
-    setTimeout(() => $('umInput').focus(), 100);
-  }
+  if (options.isPrompt) setTimeout(() => $('umInput').focus(), 100);
 }
 
 $('umBtnCancel').onclick = () => {
@@ -665,6 +755,7 @@ function saveAllData(){
   localStorage.setItem(KEY_REC, JSON.stringify(records));
   localStorage.setItem(KEY_CAT, JSON.stringify(myCats));
   localStorage.setItem(KEY_ACC, JSON.stringify(myAccs));
+  localStorage.setItem(KEY_PREF, JSON.stringify({ viewMode, defaultRecordType, colView }));
 }
 const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,7);
 function ymd(d){
@@ -770,9 +861,7 @@ $('btnConfirmMigration').onclick = () => {
   const selects = document.querySelectorAll('.mig-select');
   const mapping = {};
   
-  selects.forEach(sel => {
-    mapping[sel.dataset.old] = sel.value;
-  });
+  selects.forEach(sel => { mapping[sel.dataset.old] = sel.value; });
 
   records.forEach(r => {
     if (r.account && !r.accountId) {
@@ -806,7 +895,11 @@ function render(){
   viewAccs = newViewAccs;
   
   const y = curMonth.slice(0,4), m = Number(curMonth.slice(5,7));
-  $('monthLabel').textContent = `${y}年${m}月`;
+  if (viewMode === 'year') {
+    $('monthLabel').textContent = `${y}年`;
+  } else {
+    $('monthLabel').textContent = `${y}年${m}月`;
+  }
   $('monthPickerInput').value = curMonth + '-01';
   
   let totalBal = 0;
@@ -819,7 +912,11 @@ function render(){
     return `<button type="button" class="v-btn ${isOn}" data-acc="${accId}">${esc(displayName)}</button>`;
   }).join('');
 
-  const rs = records.filter(r => r.date.startsWith(curMonth));
+  const rs = records.filter(r => {
+    if (viewMode === 'year') return r.date.startsWith(y);
+    return r.date.startsWith(curMonth);
+  });
+
   let pagesHtml = '';
   viewAccs.forEach(accId => {
     const accRs = accId === 'ALL' ? rs : rs.filter(r => r.accountId === accId);
@@ -843,11 +940,14 @@ function updateTopUI(index) {
   );
   
   const activeBtn = document.querySelector(`.v-btn[data-acc="${currentViewAcc}"]`);
-  if (activeBtn) {
-    activeBtn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
-  }
+  if (activeBtn) activeBtn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
   
-  const rs = records.filter(r => r.date.startsWith(curMonth));
+  const y = curMonth.slice(0,4);
+  const rs = records.filter(r => {
+    if (viewMode === 'year') return r.date.startsWith(y);
+    return r.date.startsWith(curMonth);
+  });
+
   const curRs = currentViewAcc === 'ALL' ? rs : rs.filter(r => r.accountId === currentViewAcc);
   const curInc = curRs.filter(r=>r.type==='income').reduce((s,r)=>s+r.amount,0);
   const curExp = curRs.filter(r=>r.type==='expense').reduce((s,r)=>s+r.amount,0);
@@ -867,7 +967,7 @@ function updateView(index, animate = true) {
 }
 
 function buildListHtml(rs, isAll) {
-  if (!rs.length) return '<div class="empty">這個月還沒有紀錄<br><span>點下方 + 開始記帳</span></div>';
+  if (!rs.length) return '<div class="empty">這段期間還沒有紀錄<br><span>點下方 + 開始記帳</span></div>';
   const groups = {};
   rs.forEach(r => (groups[r.date] = groups[r.date] || []).push(r));
   let html = '';
@@ -913,6 +1013,10 @@ function dayLabel(d){
 function renderStats(rs){
   $('stats').innerHTML = statBlock(rs,'expense','支出') + statBlock(rs,'income','收入');
   renderManageCats();
+  
+  document.querySelectorAll('#defaultTypeSeg button').forEach(b => 
+    b.classList.toggle('on', b.dataset.type === defaultRecordType)
+  );
 }
 
 function statBlock(rs, type, title){
@@ -938,11 +1042,25 @@ function statBlock(rs, type, title){
   </div>`;
 }
 
+// 分類列表渲染
 function renderManageCats(){
   const list = myCats[manageType] || [];
-  $('manageList').innerHTML = list.map(c => `
-    <div class="m-item">
-      <span>${c.emoji || '📌'} ${esc(c.name)}</span>
+  const listEl = $('manageList');
+  
+  // 設置 CSS 變數控制列數
+  listEl.style.setProperty('--cols', colView);
+  
+  // 同步按鈕狀態
+  document.querySelectorAll('#colToggle button').forEach(x => 
+    x.classList.toggle('on', parseInt(x.dataset.col) === colView)
+  );
+
+  listEl.innerHTML = list.map(c => `
+    <div class="m-item-v ${colView === 1 ? 'list-mode' : 'grid-mode'}" data-id="${c.id}">
+      <div class="m-name">
+        <span class="m-emoji">${c.emoji || '📌'}</span>
+        <span class="m-text">${esc(c.name)}</span>
+      </div>
       <button type="button" class="m-del" data-cat="${c.id}">×</button>
     </div>
   `).join('');
@@ -977,10 +1095,15 @@ function renderBalanceList() {
 }
 
 /* ---------- 頁面切換 ---------- */
-function shiftMonth(n){
+function shiftTime(n){
   const [y,m] = curMonth.split('-').map(Number);
-  const d = new Date(y, m-1+n, 1);
-  curMonth = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+  if (viewMode === 'year') {
+    const d = new Date(y + n, 0, 1);
+    curMonth = `${d.getFullYear()}-01`;
+  } else {
+    const d = new Date(y, m-1+n, 1);
+    curMonth = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+  }
   render();
 }
 
@@ -997,7 +1120,6 @@ function switchView(v){
   document.querySelector('.topbar').style.display = isList ? 'flex' : 'none';
   
   document.getElementById('fabAdd').style.display = isList ? 'grid' : 'none';
-  
   document.querySelectorAll('.tab').forEach(b => b.classList.toggle('on', b.dataset.view === v));
   
   if (!isList) window.scrollTo(0, 0);
@@ -1006,6 +1128,10 @@ function switchView(v){
 /* ---------- 記帳面板 ---------- */
 function defaultDate(){
   const t = todayStr();
+  if (viewMode === 'year') {
+    const y = curMonth.slice(0,4);
+    return t.startsWith(y) ? t : `${y}-01-01`;
+  }
   return t.startsWith(curMonth) ? t : curMonth + '-01';
 }
 function renderCatsAndAccs(){
@@ -1027,8 +1153,8 @@ function renderCatsAndAccs(){
 
 function openSheet(rec){
   editId  = rec ? rec.id : null;
-  curType = rec ? rec.type : 'expense';
-  curCatId = rec ? rec.cat : (myCats.expense[0] ? myCats.expense[0].id : null);
+  curType = rec ? rec.type : defaultRecordType;
+  curCatId = rec ? rec.cat : (myCats[curType][0] ? myCats[curType][0].id : null);
   curAccId = rec ? (rec.accountId || myAccs[0].id) : 
                (currentViewAcc !== 'ALL' ? currentViewAcc : myAccs[0].id);
 
@@ -1092,7 +1218,7 @@ function deleteRecord(){
 
 /* ---------- 匯出 / 匯入 ---------- */
 function exportData(){
-  const backup = { records, myCats, myAccs };
+  const backup = { records, myCats, myAccs, prefs: { viewMode, defaultRecordType, colView } };
   const blob = new Blob([JSON.stringify(backup, null, 2)], {type:'application/json'});
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
@@ -1116,12 +1242,17 @@ function importData(file){
           records = data.records;
           if(data.myCats) myCats = data.myCats;
           if(data.myAccs) myAccs = data.myAccs;
+          if(data.prefs) prefs = data.prefs;
         }
         
         myAccs.forEach(acc => {
           if (!acc.id) acc.id = 'a_' + uid();
           if (acc.note === undefined) acc.note = '';
         });
+
+        viewMode = prefs.viewMode || 'month';
+        defaultRecordType = prefs.defaultRecordType || 'expense';
+        colView = prefs.colView || 1;
 
         saveAllData(); 
         if (!checkAndPromptMigration()) render();
@@ -1183,255 +1314,152 @@ container.addEventListener('touchend', e => {
   const dx = e.changedTouches[0].clientX - startX;
   const threshold = container.clientWidth * 0.2;
   
-  if (dx > threshold && currentIndex > 0) {
-    currentIndex--;
-  } else if (dx < -threshold && currentIndex < viewAccs.length - 1) {
-    currentIndex++;
-  }
+  if (dx > threshold && currentIndex > 0) currentIndex--;
+  else if (dx < -threshold && currentIndex < viewAccs.length - 1) currentIndex++;
   
   updateView(currentIndex);
 });
 
-/* ---------- 長按拖拽排序事件 (餘額管理頁面) ---------- */
-let dragItem = null;
-let dragStartY = 0;
-let pressTimer = null;
-let isDragging = false;
+/* ---------- 長按拖拽排序 (通用) ---------- */
+function setupDragSort(containerEl, itemClass, onUpdate, useWholeItem = false) {
+  let dragItem = null;
+  let dragStartY = 0;
+  let pressTimer = null;
+  let isDragging = false;
 
-const balanceListEl = $('balanceList');
+  containerEl.addEventListener('touchstart', e => {
+    let item, handle;
+    if (useWholeItem) {
+      item = e.target.closest('.' + itemClass);
+      if (!item || e.target.closest('.m-del')) return; // 如果按的是刪除按鈕，直接忽略
+      handle = item;
+    } else {
+      handle = e.target.closest('.drag-handle');
+      if (!handle) return;
+      item = handle.closest('.' + itemClass);
+    }
+    if (!item) return;
 
-// 點擊事件需要區分是「點按鈕」還是「點拖拽把手」，所以改成這樣
-$('balanceList').addEventListener('click', e => {
-  if (isDragging) return; // 剛拖拽完不要觸發點擊
-
-  // 1. 修改帳戶名稱與備註
-  const editAccBtn = e.target.closest('.edit-acc');
-  if (editAccBtn) {
-    const accId = editAccBtn.dataset.id;
-    const acc = myAccs.find(a => a.id === accId);
-    if (!acc) return;
+    const touch = e.touches[0];
+    dragStartY = touch.clientY;
+    isDragging = false;
     
-    editingAccId = accId;
-    $('editAccName').value = acc.name;
-    $('editAccNote').value = acc.note || '';
-    $('editAccOverlay').classList.add('on');
-    return;
-  }
+    pressTimer = setTimeout(() => {
+      isDragging = true;
+      dragItem = item;
+      item.classList.add('dragging');
+      if (navigator.vibrate) navigator.vibrate(20);
+    }, 200);
+  }, { passive: false });
 
-  // 2. 修改餘額
-  const editBalBtn = e.target.closest('.edit-bal');
-  if (editBalBtn) {
-    const accId = editBalBtn.dataset.id;
-    const currentBal = getAccBalance(accId);
-    
-    showModal('修改餘額', `修改「${getAccDisplayName(accId)}」的當前真實餘額：\n(輸入負數代表欠款)`, {
-      isPrompt: true,
-      inputLabel: '當前餘額',
-      defaultValue: currentBal,
-      inputMode: 'decimal',
-      confirmText: '儲存',
-      onConfirm: (newBalStr) => {
-        const newBal = parseFloat(newBalStr);
-        if (!isNaN(newBal)) {
-          const { inc, exp } = getAccIncomeExpense(accId);
-          const acc = myAccs.find(a => a.id === accId);
-          acc.initBalance = newBal - inc + exp;
-          saveAllData();
-          render();
-          toast('餘額已更新');
-        } else {
-          toast('請輸入有效數字');
+  containerEl.addEventListener('touchmove', e => {
+    if (!isDragging) {
+      if (pressTimer) {
+        const touch = e.touches[0];
+        if (Math.abs(touch.clientY - dragStartY) > 10) {
+          clearTimeout(pressTimer);
+          pressTimer = null;
         }
       }
-    });
-    return;
-  }
-
-  // 3. 刪除帳戶
-  const delBtn = e.target.closest('.del-btn');
-  if (delBtn) {
-    const accId = delBtn.dataset.id;
-    
-    if (myAccs.length <= 1) {
-      toast('必須保留至少一個帳戶');
       return;
     }
 
-    const relatedRecords = records.filter(r => r.accountId === accId);
-    let msg = `確定要刪除帳戶「${getAccDisplayName(accId)}」嗎？`;
-    if (relatedRecords.length > 0) {
-      msg = `該帳戶下有 ${relatedRecords.length} 筆記帳紀錄。\n刪除帳戶後，這些紀錄的帳戶標籤將顯示為「已刪除」，且不再計入任何帳戶餘額。\n確定要刪除嗎？`;
-    }
-
-    showModal('刪除帳戶', msg, {
-      confirmText: '確定刪除',
-      danger: true,
-      onConfirm: () => {
-        myAccs = myAccs.filter(a => a.id !== accId);
-        records.forEach(r => {
-          if (r.accountId === accId) {
-            r.accountId = 'deleted';
-            r.account = '已刪除帳戶';
-          }
-        });
-        
-        saveAllData();
-        if (currentViewAcc === accId) {
-          currentViewAcc = 'ALL';
-          currentIndex = 0;
-        }
-        if (curAccId === accId) {
-          curAccId = myAccs.length > 0 ? myAccs[0].id : null;
-        }
-        render();
-        toast('帳戶已刪除');
-      }
-    });
-  }
-});
-
-// 觸控開始 (只有按在 .drag-handle 上才觸發)
-balanceListEl.addEventListener('touchstart', e => {
-  const handle = e.target.closest('.drag-handle');
-  if (!handle) return;
-
-  const item = handle.closest('.bal-item');
-  const touch = e.touches[0];
-  
-  dragStartY = touch.clientY;
-  isDragging = false;
-  
-  // 設定長按計時器，200ms 後啟動拖拽模式
-  pressTimer = setTimeout(() => {
-    isDragging = true;
-    dragItem = item;
-    item.classList.add('dragging');
+    e.preventDefault();
+    const touch = e.touches[0];
+    const elementAtPoint = document.elementFromPoint(touch.clientX, touch.clientY);
+    if (!elementAtPoint) return;
     
-    // 震動回饋（如果設備支援）
-    if (navigator.vibrate) navigator.vibrate(20);
-    
-    // 阻止預設滾動
-    e.preventDefault(); 
-  }, 200);
-}, { passive: false });
-
-// 觸控移動
-balanceListEl.addEventListener('touchmove', e => {
-  // 如果還沒進入拖拽狀態，檢查使用者是不是在滑動（如果是，就取消長按）
-  if (!isDragging) {
-    if (pressTimer) {
-      const touch = e.touches[0];
-      if (Math.abs(touch.clientY - dragStartY) > 10) {
-        clearTimeout(pressTimer);
-        pressTimer = null;
+    const targetItem = elementAtPoint.closest('.' + itemClass);
+    if (targetItem && targetItem !== dragItem) {
+      const allItems = [...containerEl.querySelectorAll('.' + itemClass)];
+      const dragIdx = allItems.indexOf(dragItem);
+      const targetIdx = allItems.indexOf(targetItem);
+      
+      if (dragIdx < targetIdx) {
+        containerEl.insertBefore(dragItem, targetItem.nextSibling);
+      } else {
+        containerEl.insertBefore(dragItem, targetItem);
       }
     }
-    return;
-  }
+  }, { passive: false });
 
-  // 進入拖拽狀態
-  e.preventDefault(); // 阻止頁面滾動
-  const touch = e.touches[0];
-  const elementAtPoint = document.elementFromPoint(touch.clientX, touch.clientY);
-  
-  if (!elementAtPoint) return;
-  
-  const targetItem = elementAtPoint.closest('.bal-item');
-  
-  // 如果滑過其他卡片，進行位置交換
-  if (targetItem && targetItem !== dragItem) {
-    const rect = targetItem.getBoundingClientRect();
-    const targetMiddleY = rect.top + rect.height / 2;
-    
-    if (touch.clientY < targetMiddleY) {
-      balanceListEl.insertBefore(dragItem, targetItem);
-    } else {
-      balanceListEl.insertBefore(dragItem, targetItem.nextSibling);
+  containerEl.addEventListener('touchend', e => {
+    if (pressTimer) { clearTimeout(pressTimer); pressTimer = null; }
+    if (isDragging) {
+      dragItem.classList.remove('dragging');
+      dragItem = null;
+      setTimeout(() => { isDragging = false; }, 100);
+      
+      const newOrderIds = [...containerEl.querySelectorAll('.' + itemClass)].map(el => el.dataset.id);
+      onUpdate(newOrderIds);
     }
-  }
-}, { passive: false });
+  });
+}
 
-// 觸控結束
-balanceListEl.addEventListener('touchend', e => {
-  if (pressTimer) {
-    clearTimeout(pressTimer);
-    pressTimer = null;
-  }
-  
-  if (isDragging) {
-    dragItem.classList.remove('dragging');
-    dragItem = null;
-    
-    // 給一個短暫的延遲，防止 touchend 觸發了 click 事件
-    setTimeout(() => { isDragging = false; }, 100);
-
-    // 重新讀取 DOM 順序，更新 myAccs 陣列
-    const newOrderIds = [...balanceListEl.querySelectorAll('.bal-item')].map(el => el.dataset.id);
-    const newAccs = [];
-    newOrderIds.forEach(id => {
-      const acc = myAccs.find(a => a.id === id);
-      if (acc) newAccs.push(acc);
-    });
-    
-    myAccs = newAccs;
-    saveAllData();
-    
-    // 重新渲染全局（這樣首頁的 Tab 順序也會即時改變）
-    render();
-    toast('排序已更新');
-  }
-});
-
-
-/* --- 修改帳戶資訊彈窗的事件 --- */
-$('btnCancelEditAcc').onclick = () => {
-  $('editAccOverlay').classList.remove('on');
-  editingAccId = null;
-};
-
-$('btnSaveEditAcc').onclick = () => {
-  if (!editingAccId) return;
-  const acc = myAccs.find(a => a.id === editingAccId);
-  if (!acc) return;
-  
-  const newName = $('editAccName').value.trim();
-  const newNote = $('editAccNote').value.trim();
-  
-  if (!newName) {
-    toast('請輸入帳戶名稱');
-    return;
-  }
-  
-  acc.name = newName;
-  acc.note = newNote;
-  
+// 綁定帳戶拖拽 (使用把手)
+setupDragSort($('balanceList'), 'bal-item', (newOrderIds) => {
+  const newAccs = [];
+  newOrderIds.forEach(id => {
+    const acc = myAccs.find(a => a.id === id);
+    if (acc) newAccs.push(acc);
+  });
+  myAccs = newAccs;
   saveAllData();
-  $('editAccOverlay').classList.remove('on');
-  editingAccId = null;
   render();
-  toast('帳戶資訊已更新');
-};
+  toast('排序已更新');
+}, false);
 
-$('btnAddAcc2').onclick = () => {
-  const name = $('newAccName2').value.trim();
-  const note = $('newAccNote2').value.trim();
-  if(!name) { toast('請輸入帳戶名稱'); return; }
-  
-  myAccs.push({ id: 'a_'+uid(), name, note, initBalance: 0 });
+// 綁定分類拖拽 (使用整個卡片)
+setupDragSort($('manageList'), 'm-item-v', (newOrderIds) => {
+  const newCats = [];
+  newOrderIds.forEach(id => {
+    const cat = myCats[manageType].find(c => c.id === id);
+    if (cat) newCats.push(cat);
+  });
+  myCats[manageType] = newCats;
   saveAllData();
-  $('newAccName2').value = '';
-  $('newAccNote2').value = '';
-  render();
-  toast('帳戶已新增');
-};
+  renderCatsAndAccs(); 
+  toast('分類排序已更新');
+}, true);
 
-/* ---------- 其他全局事件 ---------- */
-$('prevM').onclick = () => shiftMonth(-1);
-$('nextM').onclick = () => shiftMonth(1);
+
+/* ---------- 事件綁定 ---------- */
+$('prevM').onclick = () => shiftTime(-1);
+$('nextM').onclick = () => shiftTime(1);
 $('fabAdd').onclick = () => openSheet(null);
 $('overlay').onclick = closeSheet;
 $('btnSave').onclick = saveRecord;
 $('btnDel').onclick = deleteRecord;
+
+// 年/月切換
+document.querySelectorAll('#viewToggle button').forEach(b => {
+  b.onclick = () => {
+    viewMode = b.dataset.mode;
+    document.querySelectorAll('#viewToggle button').forEach(x => x.classList.toggle('on', x.dataset.mode === viewMode));
+    saveAllData();
+    render();
+  };
+});
+
+// 列數切換
+document.querySelectorAll('#colToggle button').forEach(b => {
+  b.onclick = () => {
+    colView = parseInt(b.dataset.col);
+    prefs.colView = colView;
+    saveAllData();
+    renderManageCats();
+  };
+});
+
+// 預設記帳類型切換
+document.querySelectorAll('#defaultTypeSeg button').forEach(b => {
+  b.onclick = () => {
+    defaultRecordType = b.dataset.type;
+    document.querySelectorAll('#defaultTypeSeg button').forEach(x => x.classList.toggle('on', x.dataset.type === defaultRecordType));
+    saveAllData();
+    toast('已設定預設類型');
+  };
+});
 
 $('monthPickerInput').addEventListener('change', function(e) {
   if (!this.value) return;
@@ -1451,9 +1479,7 @@ $('viewSwitchScroll').addEventListener('click', e => {
   if (!btn) return;
   const accId = btn.dataset.acc;
   const index = viewAccs.indexOf(accId);
-  if (index !== -1) {
-    updateView(index);
-  }
+  if (index !== -1) updateView(index);
 });
 
 $('balanceEntry').onclick = () => {
@@ -1536,6 +1562,7 @@ $('btnAddCat').onclick = () => {
 };
 
 $('manageList').addEventListener('click', e => {
+  if (e.target.closest('.dragging')) return; 
   const btn = e.target.closest('.m-del');
   if(!btn) return;
   const catId = btn.dataset.cat;
@@ -1553,7 +1580,121 @@ $('manageList').addEventListener('click', e => {
   });
 });
 
-// 啟動時檢查是否需要遷移
+$('balanceList').addEventListener('click', e => {
+  if (e.target.closest('.dragging')) return; 
+
+  const editAccBtn = e.target.closest('.edit-acc');
+  if (editAccBtn) {
+    const accId = editAccBtn.dataset.id;
+    const acc = myAccs.find(a => a.id === accId);
+    if (!acc) return;
+    
+    editingAccId = accId;
+    $('editAccName').value = acc.name;
+    $('editAccNote').value = acc.note || '';
+    $('editAccOverlay').classList.add('on');
+    return;
+  }
+
+  const editBalBtn = e.target.closest('.edit-bal');
+  if (editBalBtn) {
+    const accId = editBalBtn.dataset.id;
+    const currentBal = getAccBalance(accId);
+    showModal('修改餘額', `修改「${getAccDisplayName(accId)}」的當前真實餘額：\n(輸入負數代表欠款)`, {
+      isPrompt: true,
+      inputLabel: '當前餘額',
+      defaultValue: currentBal,
+      inputMode: 'decimal',
+      confirmText: '儲存',
+      onConfirm: (newBalStr) => {
+        const newBal = parseFloat(newBalStr);
+        if (!isNaN(newBal)) {
+          const { inc, exp } = getAccIncomeExpense(accId);
+          const acc = myAccs.find(a => a.id === accId);
+          acc.initBalance = newBal - inc + exp;
+          saveAllData();
+          render();
+          toast('餘額已更新');
+        } else {
+          toast('請輸入有效數字');
+        }
+      }
+    });
+    return;
+  }
+
+  const delBtn = e.target.closest('.del-btn');
+  if (delBtn) {
+    const accId = delBtn.dataset.id;
+    if (myAccs.length <= 1) {
+      toast('必須保留至少一個帳戶');
+      return;
+    }
+    const relatedRecords = records.filter(r => r.accountId === accId);
+    let msg = `確定要刪除帳戶「${getAccDisplayName(accId)}」嗎？`;
+    if (relatedRecords.length > 0) {
+      msg = `該帳戶下有 ${relatedRecords.length} 筆記帳紀錄。\n刪除帳戶後，這些紀錄的帳戶標籤將顯示為「已刪除」，且不再計入任何帳戶餘額。\n確定要刪除嗎？`;
+    }
+    showModal('刪除帳戶', msg, {
+      confirmText: '確定刪除',
+      danger: true,
+      onConfirm: () => {
+        myAccs = myAccs.filter(a => a.id !== accId);
+        records.forEach(r => {
+          if (r.accountId === accId) {
+            r.accountId = 'deleted';
+            r.account = '已刪除帳戶';
+          }
+        });
+        saveAllData();
+        if (currentViewAcc === accId) { currentViewAcc = 'ALL'; currentIndex = 0; }
+        if (curAccId === accId) curAccId = myAccs.length > 0 ? myAccs[0].id : null;
+        render();
+        toast('帳戶已刪除');
+      }
+    });
+  }
+});
+
+$('btnCancelEditAcc').onclick = () => {
+  $('editAccOverlay').classList.remove('on');
+  editingAccId = null;
+};
+
+$('btnSaveEditAcc').onclick = () => {
+  if (!editingAccId) return;
+  const acc = myAccs.find(a => a.id === editingAccId);
+  if (!acc) return;
+  
+  const newName = $('editAccName').value.trim();
+  const newNote = $('editAccNote').value.trim();
+  
+  if (!newName) { toast('請輸入帳戶名稱'); return; }
+  
+  acc.name = newName;
+  acc.note = newNote;
+  
+  saveAllData();
+  $('editAccOverlay').classList.remove('on');
+  editingAccId = null;
+  render();
+  toast('帳戶資訊已更新');
+};
+
+$('btnAddAcc2').onclick = () => {
+  const name = $('newAccName2').value.trim();
+  const note = $('newAccNote2').value.trim();
+  if(!name) { toast('請輸入帳戶名稱'); return; }
+  
+  myAccs.push({ id: 'a_'+uid(), name, note, initBalance: 0 });
+  saveAllData();
+  $('newAccName2').value = '';
+  $('newAccNote2').value = '';
+  render();
+  toast('帳戶已新增');
+};
+
+// 啟動
 if (!checkAndPromptMigration()) {
   render();
   switchView('list');
