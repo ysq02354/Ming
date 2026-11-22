@@ -14,6 +14,7 @@
   --text: #000000;
   --sub: #888888;
   --line: #d1d1d6;
+  --danger: #ff5a5f;
 }
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{
@@ -48,7 +49,7 @@ body{
   white-space: nowrap;
   cursor: pointer;
   transition: all 0.2s;
-  touch-action: manipulation; /* 防誤觸 */
+  touch-action: manipulation;
 }
 .v-btn.on {
   background: #111;
@@ -83,7 +84,40 @@ body{
   display:flex;align-items:center;justify-content:center;gap:6px;
   padding:14px 0 10px;
 }
-.topbar h1{font-size:16px;font-weight:600;letter-spacing:.5px;min-width:110px;text-align:center}
+.month-picker-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 110px;
+  padding: 6px 12px;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: background 0.2s;
+}
+.month-picker-wrap:active {
+  background: rgba(0,0,0,0.05);
+}
+.month-picker-wrap h1 {
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: .5px;
+  margin: 0;
+  pointer-events: none;
+}
+.month-picker-wrap h1::after {
+  content: ' ▾';
+  font-size: 12px;
+  color: var(--sub);
+  vertical-align: middle;
+}
+.month-picker-input {
+  position: absolute;
+  top: 0; left: 0; width: 100%; height: 100%;
+  opacity: 0;
+  cursor: pointer;
+  -webkit-appearance: none;
+}
 .mbtn{
   border:1px solid var(--line);background:var(--card);width:32px;height:32px;border-radius:8px;
   font-size:18px;color:var(--text);display:grid;place-items:center;cursor:pointer;
@@ -253,7 +287,7 @@ body{
 .manage-box{background:#f9f9fb;border:1px solid var(--line);border-radius:8px;padding:16px;margin-bottom:16px;}
 .m-list{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
 .m-item{display:flex;align-items:center;gap:6px;background:#fff;border:1px solid var(--line);padding:4px 8px;border-radius:6px;font-size:13px;}
-.m-del{border:0;background:none;color:#ff5a5f;font-size:16px;cursor:pointer;padding:0 4px;line-height:1;touch-action:manipulation;}
+.m-del{border:0;background:none;color:var(--danger);font-size:16px;cursor:pointer;padding:0 4px;line-height:1;touch-action:manipulation;}
 .m-add{display:flex;gap:8px}
 .m-add input{flex:1;border:1px solid var(--line);padding:8px;border-radius:6px;font-size:13px;outline:none;min-width:0;}
 .m-add button{border:0;background:#111;color:#fff;padding:0 12px;border-radius:6px;font-weight:600;cursor:pointer;touch-action:manipulation;}
@@ -264,10 +298,18 @@ body{
   padding: 12px 14px; background: var(--card); border: 1px solid var(--line);
   border-radius: 8px; margin-bottom: 8px;
 }
-.bal-info { display: flex; flex-direction: column; gap: 4px; }
-.bal-name { font-size: 15px; font-weight: 600; }
+.bal-info { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 0; }
+.bal-name { font-size: 15px; font-weight: 600; display: flex; align-items: center; gap: 6px; }
+.bal-note-tag { font-size: 11px; color: var(--sub); font-weight: 400; }
 .bal-sub { font-size: 11px; color: var(--sub); }
-.bal-val { font-size: 16px; font-weight: 700; display: flex; align-items: center; }
+.bal-val { font-size: 16px; font-weight: 700; display: flex; align-items: center; flex-shrink: 0; }
+.bal-actions { display: flex; gap: 4px; margin-left: 8px; }
+.bal-actions button {
+  border: 1px solid var(--line); background: #fff; border-radius: 4px;
+  width: 26px; height: 26px; font-size: 13px; color: var(--sub); cursor: pointer;
+  display: grid; place-items: center; touch-action: manipulation;
+}
+.bal-actions button.del-btn { color: var(--danger); border-color: #ffd1d1; background: #fff0f0; }
 
 .toast{
   position:fixed;left:50%;top:50%;transform:translate(-50%,-50%) scale(.9);
@@ -275,6 +317,37 @@ body{
   font-size:14px;z-index:100;opacity:0;pointer-events:none;transition:.2s;white-space:nowrap;
 }
 .toast.on{opacity:1;transform:translate(-50%,-50%) scale(1)}
+
+/* 通用彈窗樣式 (取代原生 Alert/Confirm/Prompt) */
+.modal-overlay {
+  position: fixed; inset: 0; z-index: 999; background: rgba(0,0,0,0.6);
+  display: none; align-items: center; justify-content: center; padding: 20px;
+  -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px);
+}
+.modal-overlay.on { display: flex; }
+.modal-box {
+  background: var(--card); border-radius: 12px; width: 100%; max-width: 340px;
+  padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+  animation: popIn 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+@keyframes popIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+.modal-box h2 { font-size: 18px; margin-bottom: 12px; color: var(--text); text-align: center; }
+.modal-box p { font-size: 14px; color: var(--sub); margin-bottom: 20px; line-height: 1.5; text-align: center; white-space: pre-wrap; }
+.modal-inputs { margin-bottom: 20px; }
+.modal-inputs label { font-size: 12px; color: var(--sub); display: block; margin-bottom: 6px; }
+.edit-input {
+  width: 100%; padding: 12px; border: 1px solid var(--line); 
+  border-radius: 6px; font-size: 15px; outline: none; font-family: inherit;
+}
+.edit-input:focus { border-color: var(--text); }
+.modal-actions { display: flex; gap: 10px; }
+.modal-actions button { flex: 1; padding: 12px; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; touch-action: manipulation; }
+.modal-actions .btn-cancel { border: 1px solid var(--line); background: var(--card); color: var(--text); }
+.modal-actions .btn-confirm { border: 0; background: var(--text); color: #fff; }
+.modal-actions .btn-danger { border: 0; background: var(--danger); color: #fff; }
 </style>
 </head>
 <body>
@@ -292,7 +365,10 @@ body{
 
   <header class="topbar">
     <button class="mbtn" id="prevM">‹</button>
-    <h1 id="monthLabel">—</h1>
+    <div class="month-picker-wrap">
+      <h1 id="monthLabel">—</h1>
+      <input type="date" id="monthPickerInput" class="month-picker-input">
+    </div>
     <button class="mbtn" id="nextM">›</button>
   </header>
 
@@ -310,9 +386,7 @@ body{
     <!-- 明細頁面 -->
     <div id="viewList">
       <div class="swipe-container" id="swipeContainer">
-        <div class="swipe-wrapper" id="swipeWrapper">
-          <!-- 動態生成頁面 -->
-        </div>
+        <div class="swipe-wrapper" id="swipeWrapper"></div>
       </div>
     </div>
     
@@ -386,11 +460,66 @@ body{
   <div class="stat-title" style="text-align:center; font-size:16px; margin-bottom:16px;">💳 帳戶餘額管理</div>
   <div id="balanceList"></div>
   
-  <div class="m-add" style="margin-top:12px;">
-    <input type="text" id="newAccName2" placeholder="新增帳戶（如：信用卡）" maxlength="10" style="flex:1">
+  <div class="m-add" style="margin-top:12px; flex-wrap: wrap;">
+    <input type="text" id="newAccName2" placeholder="帳戶名稱（可重複）" maxlength="10" style="flex:1; min-width: 100px;">
+    <input type="text" id="newAccNote2" placeholder="備註（選填）" maxlength="10" style="flex:1; min-width: 100px;">
     <button type="button" id="btnAddAcc2">新增</button>
   </div>
   <button type="button" class="btn-save" style="margin-top:20px;" id="btnCloseBalance">完成</button>
+</div>
+
+<!-- 通用彈窗 (取代 alert/confirm/prompt) -->
+<div class="modal-overlay" id="universalModal">
+  <div class="modal-box">
+    <h2 id="umTitle">提示</h2>
+    <p id="umMessage" style="display:none;"></p>
+    
+    <div id="umInputContainer" class="modal-inputs" style="display:none;">
+      <label id="umInputLabel">輸入內容</label>
+      <input type="text" id="umInput" class="edit-input" autocomplete="off">
+    </div>
+    
+    <div class="modal-actions">
+      <button type="button" class="btn-cancel" id="umBtnCancel">取消</button>
+      <button type="button" class="btn-confirm" id="umBtnConfirm">確認</button>
+    </div>
+  </div>
+</div>
+
+<!-- 修改帳戶資訊彈窗 (兩個輸入框) -->
+<div class="modal-overlay" id="editAccOverlay">
+  <div class="modal-box">
+    <h2>修改帳戶資訊</h2>
+    
+    <div class="modal-inputs">
+      <label>帳戶名稱</label>
+      <input type="text" id="editAccName" class="edit-input" maxlength="10">
+    </div>
+    
+    <div class="modal-inputs">
+      <label>備註（選填）</label>
+      <input type="text" id="editAccNote" class="edit-input" maxlength="10" placeholder="如：錢包、抽屜">
+    </div>
+    
+    <div class="modal-actions">
+      <button type="button" class="btn-cancel" id="btnCancelEditAcc">取消</button>
+      <button type="button" class="btn-confirm" id="btnSaveEditAcc">儲存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 數據升級引導彈窗 -->
+<div class="modal-overlay" id="migrationOverlay">
+  <div class="modal-box" style="max-width:400px;">
+    <h2>數據升級：帳戶綁定</h2>
+    <p>系統檢測到舊版本記帳紀錄。為了防止混淆，請為舊帳戶指定對應的「新帳戶」。</p>
+    <div class="migration-list" id="migrationList" style="max-height:40vh; overflow-y:auto; margin-bottom:16px; text-align:left;">
+      <!-- 動態生成 -->
+    </div>
+    <div class="modal-actions">
+      <button type="button" class="btn-confirm" id="btnConfirmMigration" style="width:100%;">確認綁定並進入</button>
+    </div>
+  </div>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -421,11 +550,11 @@ const DEFAULT_CATS = {
   ]
 };
 const DEFAULT_ACCS = [
-  { name: '現金', initBalance: 0 },
-  { name: '借記卡', initBalance: 0 },
-  { name: 'WeChat', initBalance: 0 },
-  { name: 'Alipay', initBalance: 0 },
-  { name: 'QQ錢包', initBalance: 0 }
+  { id: 'a1', name: '現金', note: '', initBalance: 0 },
+  { id: 'a2', name: '借記卡', note: '', initBalance: 0 },
+  { id: 'a3', name: 'WeChat', note: '', initBalance: 0 },
+  { id: 'a4', name: 'Alipay', note: '', initBalance: 0 },
+  { id: 'a5', name: 'QQ錢包', note: '', initBalance: 0 }
 ];
 
 const KEY_REC = 'ledger.v4.records';
@@ -436,26 +565,70 @@ let records = loadData(KEY_REC, []);
 let myCats  = loadData(KEY_CAT, DEFAULT_CATS);
 let myAccs  = loadData(KEY_ACC, DEFAULT_ACCS);
 
-// 數據安全檢查
 if (!myCats.expense) myCats.expense = DEFAULT_CATS.expense;
 if (!myCats.income) myCats.income = DEFAULT_CATS.income;
 
-if (myAccs.length > 0 && typeof myAccs[0] === 'string') {
-  myAccs = myAccs.map(name => ({ name, initBalance: 0 }));
-  saveAllData();
-}
+myAccs.forEach(acc => {
+  if (!acc.id) acc.id = 'a_' + uid();
+  if (acc.note === undefined) acc.note = '';
+});
 
 let curMonth = todayStr().slice(0,7);
 let curView  = 'list';
 let editId   = null;
 let curType  = 'expense';
 let curCatId = myCats.expense[0].id;
-let curAccName = myAccs[0].name;
+let curAccId = myAccs[0].id; 
+let editingAccId = null; 
 
 let manageType = 'expense'; 
 let currentViewAcc = 'ALL';
-let viewAccs = ['ALL', ...myAccs.map(a => a.name)];
+let viewAccs = ['ALL', ...myAccs.map(a => a.id)];
 let currentIndex = 0;
+
+/* ---------- 通用彈窗邏輯 ---------- */
+let umOnConfirm = null;
+function showModal(title, message, options = {}) {
+  $('umTitle').textContent = title;
+  $('umMessage').textContent = message;
+  $('umMessage').style.display = message ? 'block' : 'none';
+  
+  if (options.isPrompt) {
+    $('umInputContainer').style.display = 'block';
+    $('umInputLabel').textContent = options.inputLabel || '請輸入';
+    $('umInput').value = options.defaultValue || '';
+    $('umInput').type = options.inputType || 'text';
+    if (options.inputMode) $('umInput').inputMode = options.inputMode;
+  } else {
+    $('umInputContainer').style.display = 'none';
+  }
+  
+  $('umBtnCancel').style.display = options.hideCancel ? 'none' : 'block';
+  $('umBtnConfirm').textContent = options.confirmText || '確認';
+  $('umBtnConfirm').className = options.danger ? 'btn-danger' : 'btn-confirm';
+  
+  umOnConfirm = options.onConfirm;
+  $('universalModal').classList.add('on');
+  
+  if (options.isPrompt) {
+    setTimeout(() => $('umInput').focus(), 100);
+  }
+}
+
+$('umBtnCancel').onclick = () => {
+  $('universalModal').classList.remove('on');
+  umOnConfirm = null;
+};
+
+$('umBtnConfirm').onclick = () => {
+  if (umOnConfirm) {
+    const isPrompt = $('umInputContainer').style.display !== 'none';
+    const value = isPrompt ? $('umInput').value : undefined;
+    umOnConfirm(value);
+  }
+  $('universalModal').classList.remove('on');
+  umOnConfirm = null;
+};
 
 /* ---------- 工具 ---------- */
 function loadData(key, fallback){
@@ -483,6 +656,20 @@ const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>'
 function catOf(type,id){
   return (myCats[type]||[]).find(c=>c.id===id) || {emoji:'❓',name:'其他'};
 }
+function getAccDisplayName(id) {
+  if (id === 'deleted') return '已刪除帳戶';
+  const acc = myAccs.find(a => a.id === id);
+  if (!acc) return '未知帳戶';
+  if (!acc.note) return acc.name;
+  return `${acc.name} (${acc.note})`;
+}
+function getAccShortName(id) {
+  if (id === 'deleted') return '已刪除';
+  const acc = myAccs.find(a => a.id === id);
+  if (!acc) return '未知';
+  return acc.note ? `${acc.name}·${acc.note}` : acc.name;
+}
+
 let toastTimer;
 function toast(msg){
   const t = $('toast');
@@ -492,22 +679,23 @@ function toast(msg){
   toastTimer = setTimeout(()=>t.classList.remove('on'), 1600);
 }
 
-function getAccBalance(accName) {
-  const acc = myAccs.find(a => a.name === accName);
+function getAccBalance(accId) {
+  if (accId === 'deleted') return 0;
+  const acc = myAccs.find(a => a.id === accId);
   if (!acc) return 0;
   let bal = acc.initBalance || 0;
   records.forEach(r => {
-    if (r.account === accName) {
+    if (r.accountId === accId) {
       bal += (r.type === 'income' ? r.amount : -r.amount);
     }
   });
   return bal;
 }
 
-function getAccIncomeExpense(accName) {
+function getAccIncomeExpense(accId) {
   let inc = 0, exp = 0;
   records.forEach(r => {
-    if (r.account === accName) {
+    if (r.accountId === accId) {
       if (r.type === 'income') inc += r.amount;
       else exp += r.amount;
     }
@@ -515,9 +703,79 @@ function getAccIncomeExpense(accName) {
   return { inc, exp };
 }
 
+/* ---------- 數據遷移詢問邏輯 ---------- */
+function checkAndPromptMigration() {
+  const legacyRecords = records.filter(r => r.account && !r.accountId);
+  if (legacyRecords.length === 0) return false; 
+
+  const legacyNames = [...new Set(legacyRecords.map(r => r.account))];
+  let html = '';
+  
+  legacyNames.forEach(name => {
+    let defaultSelected = 'none';
+    let matchedAcc = myAccs.find(a => {
+      if (!a.note) return false;
+      return `${a.name} (${a.note})` === name;
+    });
+    if (!matchedAcc) matchedAcc = myAccs.find(a => a.name === name && !a.note);
+    if (!matchedAcc) matchedAcc = myAccs.find(a => a.name === name);
+    if (matchedAcc) defaultSelected = matchedAcc.id;
+
+    let optionsHtml = `<option value="none" ${defaultSelected==='none'?'selected':''}>-- 未分類/其他 --</option>`;
+    optionsHtml += myAccs.map(a => {
+      const display = a.note ? `${esc(a.name)} (${esc(a.note)})` : esc(a.name);
+      const selected = (a.id === defaultSelected) ? 'selected' : '';
+      return `<option value="${a.id}" ${selected}>${display}</option>`;
+    }).join('');
+
+    html += `
+      <div class="migration-item" style="display:flex; justify-content:space-between; align-items:center; padding:12px; border:1px solid var(--line); border-radius:8px; margin-bottom:8px; background:#f9f9fb;">
+        <span style="font-size:14px; font-weight:600;">舊帳戶：${esc(name)}</span>
+        <select class="mig-select" data-old="${esc(name)}" style="padding:8px; border-radius:6px; border:1px solid var(--line); font-size:13px; outline:none; max-width:160px;">
+          ${optionsHtml}
+        </select>
+      </div>
+    `;
+  });
+
+  $('migrationList').innerHTML = html;
+  $('migrationOverlay').classList.add('on');
+  return true; 
+}
+
+$('btnConfirmMigration').onclick = () => {
+  const selects = document.querySelectorAll('.mig-select');
+  const mapping = {};
+  
+  selects.forEach(sel => {
+    mapping[sel.dataset.old] = sel.value;
+  });
+
+  records.forEach(r => {
+    if (r.account && !r.accountId) {
+      const newId = mapping[r.account];
+      if (newId && newId !== 'none') {
+        r.accountId = newId;
+        const acc = myAccs.find(a => a.id === newId);
+        if (acc) r.account = acc.name;
+      } else {
+        r.accountId = 'unclassified';
+        r.account = '未分類';
+      }
+    }
+  });
+
+  saveAllData();
+  $('migrationOverlay').classList.remove('on');
+  document.querySelector('.tabbar').style.display = 'flex';
+  render(); 
+  switchView('list');
+  toast('帳戶綁定成功');
+};
+
 /* ---------- 主渲染 ---------- */
 function render(){
-  const newViewAccs = ['ALL', ...myAccs.map(a => a.name)];
+  const newViewAccs = ['ALL', ...myAccs.map(a => a.id)];
   if (!newViewAccs.includes(currentViewAcc)) {
     currentViewAcc = 'ALL';
     currentIndex = 0;
@@ -526,23 +784,24 @@ function render(){
   
   const y = curMonth.slice(0,4), m = Number(curMonth.slice(5,7));
   $('monthLabel').textContent = `${y}年${m}月`;
+  $('monthPickerInput').value = curMonth + '-01';
   
   let totalBal = 0;
-  myAccs.forEach(a => totalBal += getAccBalance(a.name));
+  myAccs.forEach(a => totalBal += getAccBalance(a.id));
   $('totalBalanceDisplay').textContent = '$' + money(totalBal);
 
-  $('viewSwitchScroll').innerHTML = viewAccs.map(acc => `
-    <button type="button" class="v-btn ${acc === currentViewAcc ? 'on' : ''}" data-acc="${acc}">
-      ${acc === 'ALL' ? '總帳單' : acc}
-    </button>
-  `).join('');
+  $('viewSwitchScroll').innerHTML = viewAccs.map(accId => {
+    const isOn = accId === currentViewAcc ? 'on' : '';
+    const displayName = accId === 'ALL' ? '總帳單' : getAccDisplayName(accId);
+    return `<button type="button" class="v-btn ${isOn}" data-acc="${accId}">${esc(displayName)}</button>`;
+  }).join('');
 
   const rs = records.filter(r => r.date.startsWith(curMonth));
   let pagesHtml = '';
-  viewAccs.forEach(acc => {
-    const accRs = acc === 'ALL' ? rs : rs.filter(r => r.account === acc);
-    pagesHtml += `<div class="swipe-page" data-acc="${acc}">
-      ${buildListHtml(accRs, acc === 'ALL')}
+  viewAccs.forEach(accId => {
+    const accRs = accId === 'ALL' ? rs : rs.filter(r => r.accountId === accId);
+    pagesHtml += `<div class="swipe-page" data-acc="${accId}">
+      ${buildListHtml(accRs, accId === 'ALL')}
     </div>`;
   });
   $('swipeWrapper').innerHTML = pagesHtml;
@@ -566,11 +825,11 @@ function updateTopUI(index) {
   }
   
   const rs = records.filter(r => r.date.startsWith(curMonth));
-  const curRs = currentViewAcc === 'ALL' ? rs : rs.filter(r => r.account === currentViewAcc);
+  const curRs = currentViewAcc === 'ALL' ? rs : rs.filter(r => r.accountId === currentViewAcc);
   const curInc = curRs.filter(r=>r.type==='income').reduce((s,r)=>s+r.amount,0);
   const curExp = curRs.filter(r=>r.type==='expense').reduce((s,r)=>s+r.amount,0);
   
-  $('sumLabel').textContent = currentViewAcc === 'ALL' ? '綜合總帳單' : `${currentViewAcc} 帳單`;
+  $('sumLabel').textContent = currentViewAcc === 'ALL' ? '綜合總帳單' : `${getAccDisplayName(currentViewAcc)} 帳單`;
   $('sIncome').textContent  = '$' + money(curInc);
   $('sExpense').textContent = '$' + money(curExp);
   $('sBalance').textContent = '$' + money(curInc - curExp);
@@ -601,11 +860,12 @@ function buildListHtml(rs, isAll) {
       <div class="day-head"><span>${dayLabel(d)}</span><span>${parts.join(' · ')}</span></div>`;
     items.forEach(it => {
       const c = catOf(it.type, it.cat);
+      const accTag = isAll ? `<span class="tag-acc">${esc(getAccShortName(it.accountId))}</span>` : '';
       html += `<div class="item" data-id="${it.id}">
         <div class="ico ${it.type}">${c.emoji}</div>
         <div class="info">
           <div class="name">${esc(c.name)}
-            ${isAll ? `<span class="tag-acc">${esc(it.account || '未分類')}</span>` : ''}
+            ${accTag}
             ${it.note ? `<span class="note">${esc(it.note)}</span>` : ''}
           </div>
         </div>
@@ -626,7 +886,7 @@ function dayLabel(d){
   return `${dt.getMonth()+1}月${dt.getDate()}日 週${'日一二三四五六'[dt.getDay()]}`;
 }
 
-/* ---------- 統計與設置 ---------- */
+/* ---------- 設定與備份 ---------- */
 function renderStats(rs){
   $('stats').innerHTML = statBlock(rs,'expense','支出') + statBlock(rs,'income','收入');
   renderManageCats();
@@ -668,18 +928,23 @@ function renderManageCats(){
 function renderBalanceList() {
   let html = '';
   myAccs.forEach(a => {
-    const bal = getAccBalance(a.name);
-    const { inc, exp } = getAccIncomeExpense(a.name);
+    const bal = getAccBalance(a.id);
+    const { inc, exp } = getAccIncomeExpense(a.id);
+    const noteStr = a.note ? `<span class="bal-note-tag">[${esc(a.note)}]</span>` : '';
     
     html += `
       <div class="bal-item">
         <div class="bal-info">
-          <div class="bal-name">${esc(a.name)}</div>
+          <div class="bal-name">${esc(a.name)} ${noteStr}</div>
           <div class="bal-sub">初始: $${money(a.initBalance||0)} | 收: +$${money(inc)} 支: -$${money(exp)}</div>
         </div>
         <div class="bal-val">
           <span>$${money(bal)}</span>
-          <button type="button" class="mbtn edit-bal" data-acc="${esc(a.name)}" style="width:26px;height:26px;font-size:14px;margin-left:8px;">✎</button>
+          <div class="bal-actions">
+            <button type="button" class="edit-acc" data-id="${a.id}" title="修改名稱與備註">📝</button>
+            <button type="button" class="edit-bal" data-id="${a.id}" title="修改餘額">✎</button>
+            <button type="button" class="del-btn" data-id="${a.id}" title="刪除帳戶">🗑️</button>
+          </div>
         </div>
       </div>
     `;
@@ -705,8 +970,6 @@ function switchView(v){
   document.querySelector('.view-switch-wrap').style.display = isList ? 'block' : 'none';
   document.getElementById('balanceEntry').style.display = isList ? 'flex' : 'none';
   document.querySelector('.summary').style.display = isList ? 'block' : 'none';
-  
-  // 【新增】隱藏頂部時間選擇器
   document.querySelector('.topbar').style.display = isList ? 'flex' : 'none';
   
   document.getElementById('fabAdd').style.display = isList ? 'grid' : 'none';
@@ -731,18 +994,19 @@ function renderCatsAndAccs(){
      </button>`
   ).join('');
 
-  if(!myAccs.some(a => a.name === curAccName)) curAccName = myAccs[0].name;
-  $('accGrid').innerHTML = myAccs.map(a =>
-    `<button type="button" class="acc ${a.name===curAccName?'on':''}" data-acc="${esc(a.name)}">${esc(a.name)}</button>`
-  ).join('');
+  if(!myAccs.some(a => a.id === curAccId)) curAccId = myAccs[0].id;
+  $('accGrid').innerHTML = myAccs.map(a => {
+    const displayName = a.note ? `${a.name}·${a.note}` : a.name;
+    return `<button type="button" class="acc ${a.id===curAccId?'on':''}" data-id="${a.id}">${esc(displayName)}</button>`;
+  }).join('');
 }
 
 function openSheet(rec){
   editId  = rec ? rec.id : null;
   curType = rec ? rec.type : 'expense';
   curCatId = rec ? rec.cat : (myCats.expense[0] ? myCats.expense[0].id : null);
-  curAccName = rec ? (rec.account || myAccs[0].name) : 
-               (currentViewAcc !== 'ALL' ? currentViewAcc : myAccs[0].name);
+  curAccId = rec ? (rec.accountId || myAccs[0].id) : 
+               (currentViewAcc !== 'ALL' ? currentViewAcc : myAccs[0].id);
 
   $('amtInput').value  = rec ? String(rec.amount) : '';
   $('noteInput').value = rec ? (rec.note||'') : '';
@@ -771,13 +1035,14 @@ function saveRecord(){
 
   const date = $('dateInput').value || defaultDate();
   const note = $('noteInput').value.trim();
+  const accName = myAccs.find(a=>a.id===curAccId)?.name || '';
 
   if(editId){
     const r = records.find(x=>x.id===editId);
-    if(r) Object.assign(r, {type:curType, amount:amt, cat:curCatId, account:curAccName, date, note});
+    if(r) Object.assign(r, {type:curType, amount:amt, cat:curCatId, accountId:curAccId, account:accName, date, note});
   }else{
     records.push({
-      id: uid(), type: curType, amount: amt, cat: curCatId, account: curAccName,
+      id: uid(), type: curType, amount: amt, cat: curCatId, accountId: curAccId, account:accName,
       date, note, createdAt: Date.now()
     });
   }
@@ -790,10 +1055,15 @@ function saveRecord(){
 }
 function deleteRecord(){
   if(!editId) return;
-  if(!confirm('確定要刪除這筆紀錄嗎？')) return;
-  records = records.filter(r => r.id !== editId);
-  saveAllData(); closeSheet(); render(); toast('已刪除');
-  editId = null;
+  showModal('刪除紀錄', '確定要刪除這筆紀錄嗎？', {
+    confirmText: '刪除',
+    danger: true,
+    onConfirm: () => {
+      records = records.filter(r => r.id !== editId);
+      saveAllData(); closeSheet(); render(); toast('已刪除');
+      editId = null;
+    }
+  });
 }
 
 /* ---------- 匯出 / 匯入 ---------- */
@@ -814,22 +1084,36 @@ function importData(file){
   reader.onload = e => {
     try{
       const data = JSON.parse(e.target.result);
-      if(Array.isArray(data)){
-        records = data;
-      } else if(data.records){
-        if(confirm('匯入備份會覆蓋現有的數據，包含自定義的分類和帳戶，確定嗎？')){
+      
+      const processData = () => {
+        if(Array.isArray(data)){
+          records = data;
+        } else if(data.records){
           records = data.records;
           if(data.myCats) myCats = data.myCats;
-          if(data.myAccs) {
-            myAccs = data.myAccs;
-            if (myAccs.length > 0 && typeof myAccs[0] === 'string') {
-              myAccs = myAccs.map(name => ({ name, initBalance: 0 }));
-            }
-          }
-        } else return;
+          if(data.myAccs) myAccs = data.myAccs;
+        }
+        
+        myAccs.forEach(acc => {
+          if (!acc.id) acc.id = 'a_' + uid();
+          if (acc.note === undefined) acc.note = '';
+        });
+
+        saveAllData(); 
+        if (!checkAndPromptMigration()) render();
+        toast('備份已還原');
+      };
+
+      if(Array.isArray(data) || data.records) {
+        if(Array.isArray(data)) {
+            processData();
+        } else {
+            showModal('匯入備份', '匯入備份會覆蓋現有的數據，包含自定義的分類和帳戶，確定嗎？', {
+              confirmText: '確定匯入',
+              onConfirm: processData
+            });
+        }
       }
-      saveAllData(); render();
-      toast('備份已還原');
     }catch(err){ toast('檔案格式錯誤'); }
   };
   reader.readAsText(file);
@@ -892,6 +1176,12 @@ $('overlay').onclick = closeSheet;
 $('btnSave').onclick = saveRecord;
 $('btnDel').onclick = deleteRecord;
 
+$('monthPickerInput').addEventListener('change', function(e) {
+  if (!this.value) return;
+  curMonth = this.value.slice(0, 7);
+  render();
+});
+
 $('exportBtn').onclick = exportData;
 $('importBtn').onclick = () => $('importFile').click();
 $('importFile').onchange = e => {
@@ -902,8 +1192,8 @@ $('importFile').onchange = e => {
 $('viewSwitchScroll').addEventListener('click', e => {
   const btn = e.target.closest('.v-btn');
   if (!btn) return;
-  const acc = btn.dataset.acc;
-  const index = viewAccs.indexOf(acc);
+  const accId = btn.dataset.acc;
+  const index = viewAccs.indexOf(accId);
   if (index !== -1) {
     updateView(index);
   }
@@ -940,9 +1230,9 @@ $('catGrid').addEventListener('click', e => {
 $('accGrid').addEventListener('click', e => {
   const btn = e.target.closest('.acc');
   if(!btn) return;
-  curAccName = btn.dataset.acc;
+  curAccId = btn.dataset.id;
   document.querySelectorAll('.acc').forEach(x =>
-    x.classList.toggle('on', x.dataset.acc === curAccName));
+    x.classList.toggle('on', x.dataset.id === curAccId));
 });
 
 $('swipeWrapper').addEventListener('click', e => {
@@ -962,7 +1252,6 @@ $('amtInput').addEventListener('input', e => {
   e.target.value = v;
 });
 
-// 【修復重點】改用事件委託，徹底解決移動端按鈕點擊無響應的問題
 $('manageSeg').addEventListener('click', e => {
   const btn = e.target.closest('button');
   if (!btn) return;
@@ -993,51 +1282,156 @@ $('manageList').addEventListener('click', e => {
   const btn = e.target.closest('.m-del');
   if(!btn) return;
   const catId = btn.dataset.cat;
-  if(confirm('刪除後，已使用該分類的記帳紀錄將顯示為「其他」。確定刪除？')){
-    myCats[manageType] = myCats[manageType].filter(c => c.id !== catId);
-    saveAllData();
-    renderManageCats();
-    renderCatsAndAccs();
-    toast('已刪除');
-  }
+  
+  showModal('刪除分類', '刪除後，已使用該分類的記帳紀錄將顯示為「其他」。確定刪除？', {
+    confirmText: '刪除',
+    danger: true,
+    onConfirm: () => {
+      myCats[manageType] = myCats[manageType].filter(c => c.id !== catId);
+      saveAllData();
+      renderManageCats();
+      renderCatsAndAccs();
+      toast('已刪除');
+    }
+  });
 });
 
 $('balanceList').addEventListener('click', e => {
-  const btn = e.target.closest('.edit-bal');
-  if(!btn) return;
-  const accName = btn.dataset.acc;
-  const currentBal = getAccBalance(accName);
-  const newBalStr = prompt(`修改「${accName}」的當前真實餘額：\n(輸入負數代表欠款，系統會自動反推初始資金)`, currentBal);
-  if (newBalStr !== null) {
-    const newBal = parseFloat(newBalStr);
-    if (!isNaN(newBal)) {
-      const { inc, exp } = getAccIncomeExpense(accName);
-      const acc = myAccs.find(a => a.name === accName);
-      acc.initBalance = newBal - inc + exp;
-      saveAllData();
-      render();
-      toast('餘額已更新');
-    } else {
-      toast('請輸入有效數字');
+  // 1. 修改帳戶名稱與備註
+  const editAccBtn = e.target.closest('.edit-acc');
+  if (editAccBtn) {
+    const accId = editAccBtn.dataset.id;
+    const acc = myAccs.find(a => a.id === accId);
+    if (!acc) return;
+    
+    editingAccId = accId;
+    $('editAccName').value = acc.name;
+    $('editAccNote').value = acc.note || '';
+    $('editAccOverlay').classList.add('on');
+    return;
+  }
+
+  // 2. 修改餘額
+  const editBalBtn = e.target.closest('.edit-bal');
+  if (editBalBtn) {
+    const accId = editBalBtn.dataset.id;
+    const currentBal = getAccBalance(accId);
+    
+    showModal('修改餘額', `修改「${getAccDisplayName(accId)}」的當前真實餘額：\n(輸入負數代表欠款)`, {
+      isPrompt: true,
+      inputLabel: '當前餘額',
+      defaultValue: currentBal,
+      inputMode: 'decimal',
+      confirmText: '儲存',
+      onConfirm: (newBalStr) => {
+        const newBal = parseFloat(newBalStr);
+        if (!isNaN(newBal)) {
+          const { inc, exp } = getAccIncomeExpense(accId);
+          const acc = myAccs.find(a => a.id === accId);
+          acc.initBalance = newBal - inc + exp;
+          saveAllData();
+          render();
+          toast('餘額已更新');
+        } else {
+          toast('請輸入有效數字');
+        }
+      }
+    });
+    return;
+  }
+
+  // 3. 刪除帳戶
+  const delBtn = e.target.closest('.del-btn');
+  if (delBtn) {
+    const accId = delBtn.dataset.id;
+    
+    if (myAccs.length <= 1) {
+      toast('必須保留至少一個帳戶');
+      return;
     }
+
+    const relatedRecords = records.filter(r => r.accountId === accId);
+    let msg = `確定要刪除帳戶「${getAccDisplayName(accId)}」嗎？`;
+    if (relatedRecords.length > 0) {
+      msg = `該帳戶下有 ${relatedRecords.length} 筆記帳紀錄。\n刪除帳戶後，這些紀錄的帳戶標籤將顯示為「已刪除」，且不再計入任何帳戶餘額。\n確定要刪除嗎？`;
+    }
+
+    showModal('刪除帳戶', msg, {
+      confirmText: '確定刪除',
+      danger: true,
+      onConfirm: () => {
+        myAccs = myAccs.filter(a => a.id !== accId);
+        records.forEach(r => {
+          if (r.accountId === accId) {
+            r.accountId = 'deleted';
+            r.account = '已刪除帳戶';
+          }
+        });
+        
+        saveAllData();
+        if (currentViewAcc === accId) {
+          currentViewAcc = 'ALL';
+          currentIndex = 0;
+        }
+        if (curAccId === accId) {
+          curAccId = myAccs.length > 0 ? myAccs[0].id : null;
+        }
+        render();
+        toast('帳戶已刪除');
+      }
+    });
   }
 });
 
+/* --- 修改帳戶資訊彈窗的事件 --- */
+$('btnCancelEditAcc').onclick = () => {
+  $('editAccOverlay').classList.remove('on');
+  editingAccId = null;
+};
+
+$('btnSaveEditAcc').onclick = () => {
+  if (!editingAccId) return;
+  const acc = myAccs.find(a => a.id === editingAccId);
+  if (!acc) return;
+  
+  const newName = $('editAccName').value.trim();
+  const newNote = $('editAccNote').value.trim();
+  
+  if (!newName) {
+    toast('請輸入帳戶名稱');
+    return;
+  }
+  
+  acc.name = newName;
+  acc.note = newNote;
+  
+  saveAllData();
+  $('editAccOverlay').classList.remove('on');
+  editingAccId = null;
+  render();
+  toast('帳戶資訊已更新');
+};
+
 $('btnAddAcc2').onclick = () => {
   const name = $('newAccName2').value.trim();
+  const note = $('newAccNote2').value.trim();
   if(!name) { toast('請輸入帳戶名稱'); return; }
-  if(myAccs.some(a => a.name === name)) { toast('帳戶已存在'); return; }
   
-  myAccs.push({ name, initBalance: 0 });
+  myAccs.push({ id: 'a_'+uid(), name, note, initBalance: 0 });
   saveAllData();
   $('newAccName2').value = '';
+  $('newAccNote2').value = '';
   render();
   toast('帳戶已新增');
 };
 
-// 啟動
-render();
-switchView('list');
+// 啟動時檢查是否需要遷移
+if (!checkAndPromptMigration()) {
+  render();
+  switchView('list');
+} else {
+  document.querySelector('.tabbar').style.display = 'none';
+}
 </script>
 </body>
 </html>
